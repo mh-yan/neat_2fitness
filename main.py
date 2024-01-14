@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import neat2
 import numpy as np
-import utils.shape as shape
-import utils.utils as utils
+import tools.shape as shape
+import tools.utils as utils
 # import visualize
 import fitness_f.period as fit_period
-from utils.read_mesh import getmesh
+from tools.read_mesh import getmesh
 
 
 # 从左到右，从下到上
@@ -55,11 +55,11 @@ def split2inside(output, pointcloud):
     n_x=shapex*2+1
     n_y=shapey*2+1
     pcd = pointcloud
-    X = pcd[:, 0]
-    Y = pcd[:, 1]
-    trian_X = X.reshape(n_y, n_x)
-    trian_Y = Y.reshape(n_y, n_x)
-    a = output.reshape(n_y, n_x)
+    X = pcd[:, 0].copy()
+    Y = pcd[:, 1].copy()
+    trian_X = X.reshape(n_y, n_x).copy()
+    trian_Y = Y.reshape(n_y, n_x).copy()
+    a = output.reshape(n_y, n_x).copy()
     train_p_out = a
     if_inside = train_p_out > threshold
     inside_X = trian_X[if_inside]
@@ -82,21 +82,16 @@ def eval_genome(genome, config):
         output = net.activate(point)
         outputs.append(output)
     outputs = np.array(outputs)
-    near = 1e-5
     outputs = utils.scale(outputs)
-
-    for  i in range(pointcloud.shape[0]):
-        if outputs[i]<0.5:
-            volumn+=1
 
     split = split2inside(outputs, pointcloud)
     outputs_square = split['all_square']
 
     Index, X, Y, Cat = shape.find_contour(a=outputs_square, thresh=threshold, pcd=pointcloud,shapex=shapex,shapey=shapey)
-    x_values = X.flatten()
-    y_values = Y.flatten()
-    cat_values = Cat.flatten()
-    index_values = Index.flatten()
+    x_values = X.flatten().copy()
+    y_values = Y.flatten().copy()
+    cat_values = Cat.flatten().copy()
+    index_values = Index.flatten().copy()
     index_x_y_cat = np.concatenate(
         (index_values.reshape(-1, 1), x_values.reshape(-1, 1), y_values.reshape(-1, 1), cat_values.reshape(-1, 1)),
         axis=1)
@@ -117,28 +112,31 @@ def run_experiment(config_path, n_generations=100):
     best_genomes = p.run(pe.evaluate, n=n_generations)
     p1=[]
     p2=[]
-    utils.check_and_create_directory("./output")
+    utils.check_and_create_directory("./output_final")
     for i,(k,g) in enumerate(best_genomes.items()):
         print(f"{k}: is{g.fitness}")
         p1.append(g.fitness[0])
         p2.append(g.fitness[1])
-        with open(f'./output/best_genome_{i}.pkl', 'wb') as f:
+        with open(f'./output_final/best_genome_{i}.pkl', 'wb') as f:
             pickle.dump(g, f)
     bg=list(best_genomes.items())[0][1]
     print('\nBest genome: \n%s' % (bg))
- 
-
-    fig = plt.figure(figsize=(10, 7))
-    ax = fig.add_subplot(111, projection='3d')
+    # 画pareto front
+    fig = plt.figure(figsize=(10,10))
+    ax = fig.add_subplot(111)
     ax.scatter(p1, p2, color="green")
     ax.set_xlabel('f1', fontweight='bold')
     ax.set_ylabel('f2', fontweight='bold')
+    ax.set_title(' Pareto front',fontweight='bold')  # 添加标题
     # 添加颜色条
     plt.show()
+    plt.savefig(f"./output_final/pareto_front.png")
+    plt.close()
+    
 
 orig_size_xy = (1, 1)
 density = 10
-n_generations =1
+n_generations =10
 threshold = 0.5
 # 要求是square
 shapex = orig_size_xy[0]*density

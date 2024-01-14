@@ -1,11 +1,11 @@
 import math
 import pickle
-import utils.data2txt as data2txt
+import tools.data2txt as data2txt
 import neat2
 import  numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
-import utils.utils as utils
+import tools.utils as utils
 
 def triangulation(shapex,shapey):
     
@@ -46,8 +46,8 @@ def find_contour(a, thresh, pcd,shapex,shapey):
     # num_squares_x = int((a.shape[1] - 1) / 2)
     # num_squares_y = int((a.shape[0] - 1) / 2)
     num_squares = int(shapex * shapey)
-    X = pcd[:, 0].reshape(a.shape[0], a.shape[1])  # 先横向再纵向
-    Y = pcd[:, 1].reshape(a.shape[0], a.shape[1])
+    X = pcd[:, 0].reshape(a.shape[0], a.shape[1]).copy()  # 先横向再纵向
+    Y = pcd[:, 1].reshape(a.shape[0], a.shape[1]).copy()
     Index = np.zeros((a.shape[0], a.shape[1]))
     Cat = (a > thresh) + 1
     # create index 先横向再纵向
@@ -225,7 +225,7 @@ def load_net(path,config):
     return net
 
 def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
-    net=load_net(f'.{path}.pkl',config)
+    net=load_net(path,config)
     outputs = []
     for point in pcd:
         output = net.activate(point)
@@ -234,25 +234,9 @@ def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
     outputs=utils.scale(outputs)
     near = 1e-11
 
-    # for i,data in enumerate(pcd):
-    #     if data[0]<=-0.8:
-    #         outputs[i]=0.0
-    #     if data[1]<=data[0]+0.3-near or data[1]<=data[0]+0.3+near:
-    #         outputs[i]=1.
-    #     if data[1]>data[0]+0.3+near and data[1]<=data[0]+0.6+near:
-    #         outputs[i]=0.0
-    #     if data[0]>-0.2 and data[1]>data[0]+0.6-near:
-    #         outputs[i]=1.
-
-    # mask for 1，2
-    # for i,data in enumerate(pcd):
-    #     if data[1]<=-0.8 or data[1]>=0.8:
-    #         outputs[i]=0
-    #     if  data[0]>=1.8:
-    #         outputs[i] = 0
     outputs=outputs.reshape(2*shapey+1,2*shapex+1)
     Index, X, Y, Cat=find_contour(outputs,thresh,pcd,shapex,shapey)
-    plt.figure(figsize=(9, 9))
+
     x_values = X.flatten()
     y_values = Y.flatten()
     # scale
@@ -261,16 +245,6 @@ def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
     cat_values = Cat.flatten()
     index_values = Index.flatten()
 
-
-
-
-    
-    # in1x, in1y = x_values[cat_values == 1], y_values[cat_values == 1]
-    # in2x, in2y = x_values[cat_values == 2], y_values[cat_values == 2]
-    # bx, by = x_values[cat_values == 0], y_values[cat_values == 0]
-    # plt.scatter(in1x, in1y, c='r', s=30)
-    # plt.scatter(in2x, in2y, c='b', s=30)
-    # plt.scatter(bx, by, c='g', s=30)
     # 假设tri是包含三角形索引的数组
     # 假设a是包含索引、x坐标、y坐标和类别的数组
     index_x_y_cat = np.concatenate(
@@ -281,25 +255,18 @@ def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
     x_coords = index_x_y_cat[:, 1]
     y_coords = index_x_y_cat[:, 2]
     cat=get_tri_cat(Tri,index_x_y_cat)
-    triang = Triangulation(x_values, y_values)
+    plt.figure(figsize=(9, 9))
     plt.triplot(x_coords, y_coords, triangles, '-', lw=0.1)
     plt.tripcolor(x_coords, y_coords, triangles,facecolors=cat, edgecolors='k',cmap='PuBu_r')
     plt.show()
-    # # 遍历每个三角形
-    # for triangle_indices in triangles:
-    #     # 获取三角形的三个顶点坐标
-    #     x_triangle = x_coords[triangle_indices.astype(int)]
-    #     y_triangle = y_coords[triangle_indices.astype(int)]
-
-    #     # 添加第一个点到最后一个点的线段
-    #     x_triangle = np.append(x_triangle, x_triangle[0])
-    #     y_triangle = np.append(y_triangle, y_triangle[0])
-
-    #     # 画连接三个点的线段 y,x互换
-    #     plt.plot(x_triangle, y_triangle, marker='o', linestyle='-', markersize=0.001, color='gray')
-    data2txt.dim2_ouput_format_excel(index_x_y_cat, Tri)
-    if save_name!=None:
-        plt.savefig(f'./res_img/{save_name}.png')
+    path_str=path.split(".")[1]
+    print("path is :",path_str)
+    plt.savefig(f'.{path_str}.png')
+    plt.close()
+    
+    # data2txt.dim2_ouput_format_excel(index_x_y_cat, Tri)
+    # if save_name!=None:
+    #     plt.savefig(f'./res_img/{save_name}.png')
   
 
 def draw_shape(points,outside_tri):

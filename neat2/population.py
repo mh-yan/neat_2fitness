@@ -5,7 +5,7 @@ from neat2.math_util import mean
 from neat2.reporting import ReporterSet
 
 import pickle
-import utils.utils
+import tools.utils as utils
 import math
 import matplotlib.pyplot as plt
 class CompleteExtinctionException(Exception):
@@ -47,21 +47,24 @@ class Population(object):
             
             self.population ,self.best_genomes= self.reproduction.reproduce(self.config,self.population,
                                                           self.config.pop_size, self.generation,fitness_function)
-            if k==1:
-                p1 = []
-                p2 = []
-                utils.check_and_create_directory("./output_gen0")
-                for i, g in enumerate((list(self.best_genomes.items()))):
-                    p1.append(g[1].fitness[0])
-                    p2.append(g[1].fitness[1])
-                    with open(f'./output_gen0/best_genome_gen0_{i}.pkl', 'wb') as f:
-                        pickle.dump(g[1], f)
-                fig=plt.figure()
-                ax = fig.add_subplot(111, projection='2d')
-                ax.scatter(p1, p2, color="red")
-                ax.set_xlabel('f1', fontweight='bold')
-                ax.set_ylabel('f2', fontweight='bold')
-            print(list(self.best_genomes.items())[0][1].fitness)
+            p1 = []
+            p2 = []
+            utils.check_and_create_directory(f"./output/output_gen{k}")
+            for i, g in enumerate((list(self.best_genomes.items()))):
+                p1.append(g[1].fitness[0])
+                p2.append(g[1].fitness[1])
+                with open(f'./output/output_gen{k}/best_genome_{i}.pkl', 'wb') as f:
+                    pickle.dump(g[1], f)
+            fig=plt.figure(figsize=(10,10))
+            ax = fig.add_subplot(111)
+            ax.scatter(p1, p2, color="red")
+            ax.set_title(' Pareto front',fontweight='bold')  # 添加标题
+            ax.set_xlabel('f1', fontweight='bold')
+            ax.set_ylabel('f2', fontweight='bold')
+            plt.show()
+            plt.savefig(f"./output/output_gen{k}/pareto_front.png")
+            plt.close()
+            print("a individual of the pareto front is :",list(self.best_genomes.items())[0][1].fitness)
             print("the generation now is : ",self.generation)
 
             self.generation += 1

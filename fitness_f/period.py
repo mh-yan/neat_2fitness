@@ -92,7 +92,7 @@ def getfit(mesh):
         for k in range(3):
             Sigma[k] = assemble(sum([stress2Voigt(sigma(v, i, Eps))[k]*dx(i) for i in range(nphases)]))/1
         Chom[j, :] = Sigma
-    print(Chom)
+    # print(Chom)
     y = SpatialCoordinate(mesh)
     plt.figure()
     p = plot(0.5*(dot(Eps, y)+v), mode="displacement", title=case)
