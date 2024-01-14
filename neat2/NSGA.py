@@ -1,18 +1,8 @@
-
 #Importing required modules
 import math
 import random
 import matplotlib.pyplot as plt
 
-#First function to optimize
-# def function1(x):
-#     value = -x**2
-#     return value
-#
-# #Second function to optimize
-# def function2(x):
-#     value = -(x-2)**2
-#     return value
 
 #Function to find index of list
 def index_of(a,list):
@@ -87,7 +77,7 @@ def fast_non_dominated_sort3(solution):
     return front
 
 #Function to carry out NSGA-II's fast non dominated sort
-def fast_non_dominated_sort(solution):
+def fast_non_dominated_sort_max(solution):
     '''
     :param values1:  fitness1
     :param values2: fitness2
@@ -130,7 +120,7 @@ def fast_non_dominated_sort(solution):
 
     del front[len(front)-1]
     return front
-def fast_non_dominated_sort2(solution):
+def fast_non_dominated_sort_min(solution):
     values1 = [g.fitness[0] for (k, g) in solution.items()]
     values2 = [g.fitness[1] for (k, g) in solution.items()]
 

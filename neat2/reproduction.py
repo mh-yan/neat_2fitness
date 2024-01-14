@@ -61,25 +61,18 @@ class DefaultReproduction(DefaultClassConfig):
             child.configure_crossover(parent1, parent2, config.genome_config)
             child.mutate(config.genome_config)
             solution2[gid] = child
-        # while (len(solution2) <= 2 * pop_size):
-        #     gid = next(self.genome_indexer)
-        #     parent_id, parent = random.choice(list(solution2.items()))
-        #     new_g=parent.get_pruned_copy(config.genome_config,gid)
-        #     # child.mutate(config.genome_config)
-        #     solution2[gid] = new_g
+            
         fitness_function(list(solution2.items()), config)
-
+        
         function1_values2 = [g.fitness[0] for (k, g) in solution2.items()]
         function2_values2 = [g.fitness[1] for (k, g) in solution2.items()]
-        function3_values3 = [g.fitness[1] for (k, g) in solution2.items()]
         
-        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort2(solution2)
-        print("fs ok")
+        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort_max(solution2)
         crowding_distance_values2 = []
         for i in range(0, len(non_dominated_sorted_solution2)):
             crowding_distance_values2.append(
 
-                NSGA.crowding_distance(function1_values2[:], function2_values2[:],function3_values3[:],
+                NSGA.crowding_distance(function1_values2[:], function2_values2[:],
                                        non_dominated_sorted_solution2[i][:]))
 
         new_solution = []
@@ -97,14 +90,9 @@ class DefaultReproduction(DefaultClassConfig):
                     break
             if (len(new_solution) == pop_size):
                 break
-        # for data in non_dominated_sorted_solution2:
-        #     for i in data:
-        #         new_solution.append(i)
-        #         if len(new_solution)==pop_size:
-        #             break
-        #     if len(new_solution)==pop_size:
-        #         break
+
         p_front1 = {list(solution2.items())[i][0]: list(solution2.items())[i][1] for i in
                    non_dominated_sorted_solution2[0]}
         solution = {list(solution2.items())[i][0]: list(solution2.items())[i][1] for i in new_solution}
+        
         return solution, p_front1

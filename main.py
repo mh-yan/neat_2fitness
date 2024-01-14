@@ -8,16 +8,13 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import neat2
 import numpy as np
-import fun2
-import fun3
-import fitness_function
-import shape
-import fun1
-import utils
+import utils.shape as shape
+import utils.utils as utils
 # import visualize
-import period as fit_period
-from read_mesh import getmesh
-# Todo 非方形点云
+import fitness_f.period as fit_period
+from utils.read_mesh import getmesh
+
+
 # 从左到右，从下到上
 def point_xy(shapex, shapey):
     l=2*shapex+1
@@ -32,9 +29,9 @@ def point_xy(shapex, shapey):
     input_xy = np.stack((X.flatten(), Y.flatten()), axis=1)
     # normalize the input_xyz
     for i in range(2):
-        input_xy[:, i] = utils.normalize(input_xy[:, i], 0, 1)  # [-1, 1]
-    # input_xy[:, 0]*=orig_size_xy[0]
-    # input_xy[:, 1]*=orig_size_xy[1]
+        input_xy[:, i] = utils.normalize(input_xy[:, i], 0, 1)  #[0,1]
+    input_xy[:, 0]*=orig_size_xy[0]
+    input_xy[:, 1]*=orig_size_xy[1]
     return input_xy
 
 
@@ -87,35 +84,14 @@ def eval_genome(genome, config):
     outputs = np.array(outputs)
     near = 1e-5
     outputs = utils.scale(outputs)
-    # outputs=outputs-2
-    volumn=0
-    # for i,data in enumerate(pointcloud):
-    #     # if outputs[i]<0.5:
-    #     #     volumn+=1
-    #     if data[0]<=-0.8:
-    #         outputs[i]=0.0
-    #     if data[1]<=data[0]+0.3-near:
-    #         outputs[i]=1.
-    #     if data[1]>data[0]+0.3+near and data[1]<=data[0]+0.6+near:
-    #         outputs[i]=0.0
-    #     if data[0]>-0.2 and data[1]>data[0]+0.6-near:
-    #         outputs[i]=1.
-    
-   
-    # for i,data in enumerate(pointcloud):
-    #     if data[1]<=-0.8 or data[1]>=0.8:
-    #         outputs[i]=0
-    #     if  data[0]>=1.8:
-    #         outputs[i] = 0
-            
-    volumn=0
+
     for  i in range(pointcloud.shape[0]):
         if outputs[i]<0.5:
             volumn+=1
 
     split = split2inside(outputs, pointcloud)
     outputs_square = split['all_square']
-    # outputs_square[5:15,5:15]=2
+
     Index, X, Y, Cat = shape.find_contour(a=outputs_square, thresh=threshold, pcd=pointcloud,shapex=shapex,shapey=shapey)
     x_values = X.flatten()
     y_values = Y.flatten()
@@ -126,56 +102,39 @@ def eval_genome(genome, config):
         axis=1)
 
     outside_tri=shape.get_outside_Tri(Tri, index_x_y_cat)
-    # f1,f2=fun3.fenics_fitness(index_x_y_cat,outside_tri)
     mesh=getmesh(index_x_y_cat,outside_tri)
+    # 求最大值？？
     f1,f2=fit_period.getfit(mesh)
-    return [volumn,f2,f1]
+    return [f1,f2]
 
 
 
 def run_experiment(config_path, n_generations=100):
     config = neat2.Config(neat2.DefaultGenome, neat2.DefaultReproduction,config_path)
     p = neat2.Population(config)
-    # p.add_reporter(neat2.StdOutReporter(True))
-    # stats = neat2.StatisticsReporter()
-    # p.add_reporter(stats)
+
     pe = neat2.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
     best_genomes = p.run(pe.evaluate, n=n_generations)
     p1=[]
     p2=[]
-    p3=[]
+    utils.check_and_create_directory("./output")
     for i,(k,g) in enumerate(best_genomes.items()):
         print(f"{k}: is{g.fitness}")
         p1.append(g.fitness[0])
         p2.append(g.fitness[1])
-        p3.append(g.fitness[2])
         with open(f'./output/best_genome_{i}.pkl', 'wb') as f:
             pickle.dump(g, f)
     bg=list(best_genomes.items())[0][1]
     print('\nBest genome: \n%s' % (bg))
  
-    # for i,g in enumerate((list(best_genomes.items()))):
-
 
     fig = plt.figure(figsize=(10, 7))
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter3D(p1, p2, p3, color="green")
-    ax.set_xlabel('volumn', fontweight='bold')
-    ax.set_ylabel('strain energy', fontweight='bold')
-    ax.set_zlabel('mises stresse', fontweight='bold')
+    ax.scatter(p1, p2, color="green")
+    ax.set_xlabel('f1', fontweight='bold')
+    ax.set_ylabel('f2', fontweight='bold')
     # 添加颜色条
     plt.show()
-    node_names = {-1: 'X', -2: 'Y', 0: 'Output'}
-    # visualize.draw_net(config, bg, True, node_names=node_names)
-    # visualize.plot_stats(stats, ylog=False, view=True)
-    # visualize.plot_species(stats, view=True)
-    # shape.getshape('./output/best_genome_0.pkl', config, threshold, pointcloud, Tri,shapex,shapey)
-    # g_best_ever = stats.best_genome()
-    # with open('./output/best_genome_ever.pkl', 'wb') as f:
-    #     pickle.dump(g_best_ever, f)
-
-
-# scale xy mask fun
 
 orig_size_xy = (1, 1)
 density = 10
