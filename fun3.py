@@ -76,7 +76,7 @@ def fenics_fitness(points,outside_tri):
     # plt.figure()
     # p = plot(sigma(u, Delta_T)[0, 0],title="Horizontal stress [MPa]")
     # plt.colorbar(p)
-
+    
 
     # ===========
     s = sigma(u,Delta_T) - (1./3)*tr(sigma(u,Delta_T))*Identity(2)
