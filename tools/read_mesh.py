@@ -58,9 +58,9 @@ def read_custom_txt_mesh(points,outside_tri):
 
 def getmesh(points,outside_tri):
     mesh= read_custom_txt_mesh(points,outside_tri)
-    # plt.figure()
-    # plot(mesh)
-    # plt.savefig(f'./mesh{random.random()}.png')
+    plt.figure()
+    plot(mesh)
+    plt.savefig(f'./mesh{random.random()}.png')
     
-    # plt.close()
+    plt.close()
     return mesh

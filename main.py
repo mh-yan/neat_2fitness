@@ -13,6 +13,16 @@ import tools.utils as utils
 # import visualize
 import fitness_f.period as fit_period
 from tools.read_mesh import getmesh
+import cv2
+
+def square2parallel(input_xy):
+    affine_matrix = np.array([[1.5, 0.5],   # 水平拉伸
+                          [0, 1]])      # 垂直不变
+
+    # 应用仿射变换
+    output_xy = cv2.transform(input_xy.reshape(1, -1, 2), affine_matrix)
+    print(output_xy[0].shape)
+    return np.array(output_xy[0])
 
 
 # 从左到右，从下到上
@@ -30,6 +40,7 @@ def point_xy(shapex, shapey):
     # normalize the input_xyz
     for i in range(2):
         input_xy[:, i] = utils.normalize(input_xy[:, i], 0, 1)  #[0,1]
+    input_xy=square2parallel(input_xy)
     input_xy[:, 0]*=orig_size_xy[0]
     input_xy[:, 1]*=orig_size_xy[1]
     return input_xy
@@ -136,7 +147,7 @@ def run_experiment(config_path, n_generations=100):
 
 orig_size_xy = (1, 1)
 density = 10
-n_generations =10
+n_generations =1
 threshold = 0.5
 # 要求是square
 shapex = orig_size_xy[0]*density
