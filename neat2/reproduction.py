@@ -67,7 +67,7 @@ class DefaultReproduction(DefaultClassConfig):
         function1_values2 = [g.fitness[0] for (k, g) in solution2.items()]
         function2_values2 = [g.fitness[1] for (k, g) in solution2.items()]
         
-        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort_max(solution2)
+        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort_min(solution2)
         crowding_distance_values2 = []
         for i in range(0, len(non_dominated_sorted_solution2)):
             crowding_distance_values2.append(
