@@ -79,8 +79,6 @@ def find_contour(a, thresh, pcd,shapex,shapey):
             j = jj * 2
 
             # ========================画边框
-            # if (i + 2 > a.shape[0] - 2 or j + 2 > a.shape[1] - 2):
-            #     continue
             # p1
             if Cat[i,j]==Cat[i,j+2]:
                 Cat[i,j+1]=Cat[i,j]
@@ -264,10 +262,6 @@ def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
     plt.savefig(f'.{path_str}.png')
     plt.close()
     
-    # data2txt.dim2_ouput_format_excel(index_x_y_cat, Tri)
-    # if save_name!=None:
-    #     plt.savefig(f'./res_img/{save_name}.png')
-  
 
 def draw_shape(points,outside_tri):
     for triangle_indices in outside_tri:

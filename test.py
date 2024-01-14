@@ -8,9 +8,11 @@ import neat2
 import math
 import numpy
 import tools.utils as utils
+import tools.read_mesh as rm
 import numpy as np
 import tools.shape as shape
-def point_xy(shapex, shapey):
+
+def point_xy(shapex, shapey): 
     l=2*shapex+1
     w=2*shapey+1
     x = np.linspace(0, 1, l)
@@ -27,6 +29,7 @@ def point_xy(shapex, shapey):
     input_xy[:, 0]*=orig_size_xy[0]
     input_xy[:, 1]*=orig_size_xy[1]
     return input_xy
+
 config = neat2.Config(
     neat2.DefaultGenome, neat2.DefaultReproduction,
     'maze_config.ini')
@@ -43,11 +46,13 @@ shapey = orig_size_xy[1]*density
 pointcloud = point_xy(shapex, shapey)
 Tri=shape.triangulation(shapex,shapey)
 
-
 # the root directory of neural network 
 path=f"./output_final"
 path2=f"./output/output_gen2"
+
 utils.plotall(config=config,path=path,thresh=threshold,pcd=pointcloud,Tri=Tri,shapex=shapex,shapey=shapey)
+
+
 
         
     

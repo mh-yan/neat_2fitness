@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 from dolfin import *
 import numpy as np
+import random
 # # 使用示例
 # file_path = "path/to/your/mesh.txt"
 # prefix_to_find = "8 outside_tri"
@@ -54,10 +55,12 @@ def read_custom_txt_mesh(points,outside_tri):
 
     return mesh
 
+
 def getmesh(points,outside_tri):
     mesh= read_custom_txt_mesh(points,outside_tri)
     # plt.figure()
     # plot(mesh)
-    # plt.savefig('./mesh.png')
+    # plt.savefig(f'./mesh{random.random()}.png')
+    
     # plt.close()
     return mesh

@@ -83,7 +83,7 @@ def getfit(mesh):
 
     Chom = np.zeros((3, 3))
     for (j, case) in enumerate(["Exx", "Eyy", "Exy"]):
-        print("Solving {} case...".format(case))
+        # print("Solving {} case...".format(case))
         Eps.assign(Constant(macro_strain(j)))
         solve(a == L, w, [], solver_parameters={"linear_solver": "cg"})
         
@@ -93,12 +93,12 @@ def getfit(mesh):
             Sigma[k] = assemble(sum([stress2Voigt(sigma(v, i, Eps))[k]*dx(i) for i in range(nphases)]))/1
         Chom[j, :] = Sigma
     # print(Chom)
-    y = SpatialCoordinate(mesh)
-    plt.figure()
-    p = plot(0.5*(dot(Eps, y)+v), mode="displacement", title=case)
-    plt.colorbar(p)
+    # y = SpatialCoordinate(mesh)
+    # plt.figure()
+    # p = plot(0.5*(dot(Eps, y)+v), mode="displacement", title=case)
+    # plt.colorbar(p)
     # plt.show()
-    plt.savefig('deformed.png')
+    # plt.savefig('deformed.png')
         
     return -(Chom[0,0]+Chom[1,1])/2.,Chom[0,1]
     #max avg 0011 min 01 10
