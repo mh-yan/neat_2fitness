@@ -238,8 +238,8 @@ def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
     x_values = X.flatten()
     y_values = Y.flatten()
     # scale
-    x_values*=250
-    y_values*=250
+    # x_values*=250
+    # y_values*=250
     cat_values = Cat.flatten()
     index_values = Index.flatten()
 

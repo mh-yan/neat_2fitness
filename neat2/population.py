@@ -22,9 +22,10 @@ class Population(object):
         5. Go to 1.
     """
 
-    def __init__(self, config, initial_state=None):
+    def __init__(self, config,pcd, initial_state=None):
         self.reporters = ReporterSet()
         self.config = config
+        self.pcd=pcd
         self.reproduction = config.reproduction_type(config.reproduction_config,self.reporters)
 
         if initial_state is None:
@@ -46,15 +47,16 @@ class Population(object):
             print("===========begin iteration===========")
             
             self.population ,self.best_genomes= self.reproduction.reproduce(self.config,self.population,
-                                                          self.config.pop_size, self.generation,fitness_function)
+                                                          self.config.pop_size, self.generation,fitness_function,self.pcd)
             p1 = []
             p2 = []
             utils.check_and_create_directory(f"./output/output_gen{k}")
-            for i, g in enumerate((list(self.best_genomes.items()))):
+            for i, g in enumerate((list(self.population.items()))):
                 p1.append(g[1].fitness[0])
                 p2.append(g[1].fitness[1])
                 with open(f'./output/output_gen{k}/best_genome_{i}.pkl', 'wb') as f:
                     pickle.dump(g[1], f)
+            print("p1 len :",len(p1))
             fig=plt.figure(figsize=(10,10))
             ax = fig.add_subplot(111)
             ax.scatter(p1, p2, color="red")

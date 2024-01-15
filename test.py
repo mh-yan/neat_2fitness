@@ -48,9 +48,9 @@ Tri=shape.triangulation(shapex,shapey)
 
 # the root directory of neural network 
 path=f"./output_final"
-path2=f"./output/output_gen2"
+path2=f"./output/output_gen1"
 
-utils.plotall(config=config,path=path,thresh=threshold,pcd=pointcloud,Tri=Tri,shapex=shapex,shapey=shapey)
+utils.plotall(config=config,path=path2,thresh=threshold,pcd=pointcloud,Tri=Tri,shapex=shapex,shapey=shapey)
 
 
 

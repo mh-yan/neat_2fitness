@@ -10,8 +10,8 @@ import neat2
 import numpy as np
 import tools.shape as shape
 import tools.utils as utils
-# import visualize
 import fitness_f.period as fit_period
+import fitness_f.fitness_function as ff
 from tools.read_mesh import getmesh
 import cv2
 
@@ -40,7 +40,7 @@ def point_xy(shapex, shapey):
     # normalize the input_xyz
     for i in range(2):
         input_xy[:, i] = utils.normalize(input_xy[:, i], 0, 1)  #[0,1]
-    input_xy=square2parallel(input_xy)
+    # input_xy=square2parallel(input_xy)
     input_xy[:, 0]*=orig_size_xy[0]
     input_xy[:, 1]*=orig_size_xy[1]
     return input_xy
@@ -90,6 +90,8 @@ def eval_genome(genome, config):
     outputs = []
     fitness=[]
     for point in pointcloud:
+        pointsym = np.sin(point*math.pi)
+        print(point, pointsym)
         output = net.activate(point)
         outputs.append(output)
     outputs = np.array(outputs)
@@ -106,7 +108,6 @@ def eval_genome(genome, config):
     index_x_y_cat = np.concatenate(
         (index_values.reshape(-1, 1), x_values.reshape(-1, 1), y_values.reshape(-1, 1), cat_values.reshape(-1, 1)),
         axis=1)
-
     outside_tri=shape.get_outside_Tri(Tri, index_x_y_cat)
     mesh=getmesh(index_x_y_cat,outside_tri)
     # 求最大值？？
@@ -117,8 +118,7 @@ def eval_genome(genome, config):
 
 def run_experiment(config_path, n_generations=100):
     config = neat2.Config(neat2.DefaultGenome, neat2.DefaultReproduction,config_path)
-    p = neat2.Population(config)
-
+    p = neat2.Population(config,pcd=pointcloud)
     pe = neat2.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
     best_genomes = p.run(pe.evaluate, n=n_generations)
     p1=[]
@@ -155,7 +155,7 @@ shapey = orig_size_xy[1]*density
 pointcloud = point_xy(shapex, shapey)
 Tri = shape.triangulation(shapex, shapey)
 if __name__ == '__main__':
-    random_seed = 33
+    random_seed = 22
     random.seed(random_seed)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'maze_config.ini')

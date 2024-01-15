@@ -45,7 +45,7 @@ def getfit(mesh):
     subdomains = MeshFunction("size_t", mesh, 1)
     Em = 50e3
     num = 0.2
-    Er = 210e3
+    Er = 1
     nur = 0.3
     material_parameters = [(Er, nur)]
     nphases = len(material_parameters)
@@ -85,13 +85,18 @@ def getfit(mesh):
     for (j, case) in enumerate(["Exx", "Eyy", "Exy"]):
         # print("Solving {} case...".format(case))
         Eps.assign(Constant(macro_strain(j)))
-        solve(a == L, w, [], solver_parameters={"linear_solver": "cg"})
-        
+        try:
+            solve(a == L, w, [], solver_parameters={"linear_solver": "cg"})
+        except Exception as e:
+            print("error")
+            return 999999999999,999999999999
         (v, lamb) = split(w)
         Sigma = np.zeros((3,))
         for k in range(3):
             Sigma[k] = assemble(sum([stress2Voigt(sigma(v, i, Eps))[k]*dx(i) for i in range(nphases)]))/1
         Chom[j, :] = Sigma
+    lmbda_hom = Chom[0, 1]
+    mu_hom = Chom[2, 2]
     # print(Chom)
     # y = SpatialCoordinate(mesh)
     # plt.figure()

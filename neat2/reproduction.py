@@ -5,12 +5,14 @@ asexual reproduction from parents.
 import copy
 import random
 from itertools import count
-
+import neat2.nn as nn
 import neat2.NSGA as NSGA
 from neat2.config import ConfigParameter, DefaultClassConfig
-
-
+import numpy as np
+from tools  import utils as utils
+from tools import shape as shape
 # 定义用于计算拥挤距离的函数
+
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate
@@ -40,13 +42,19 @@ class DefaultReproduction(DefaultClassConfig):
     def create_new(self, genome_type, genome_config, num_genomes):
         new_genomes = {}
         for i in range(num_genomes):
+            flag=1
             key = next(self.genome_indexer)
             g = genome_type(key)
             g.configure_new(genome_config)
+            i=0
+            while i<10:
+                i+=1
+                g.mutate(genome_config)
+            print(g)
             new_genomes[key] = g
         return new_genomes
 
-    def reproduce(self, config, solution, pop_size, generation, fitness_function):
+    def reproduce(self, config, solution, pop_size, generation, fitness_function,pointcloud):
         """
         Handles creation of genomes, either from scratch or by sexual or
         asexual reproduction from parents.
@@ -54,12 +62,40 @@ class DefaultReproduction(DefaultClassConfig):
         solution2 = copy.deepcopy(solution)
         # Generating offsprings
         while (len(solution2) <2 * pop_size):
+            is_true=0
             gid = next(self.genome_indexer)
             parent1_id, parent1 = random.choice(list(solution.items()))
             parent2_id, parent2 = random.choice(list(solution.items()))
             child = config.genome_type(gid)
             child.configure_crossover(parent1, parent2, config.genome_config)
             child.mutate(config.genome_config)
+            # while is_true!=1:
+            #     outputs=[]
+            #     child.mutate(config.genome_config)
+            #     net = nn.FeedForwardNetwork.create(child, config)
+            #     for point in pointcloud:
+            #          output = net.activate(point)
+            #          outputs.append(output)
+            #     outputs = np.array(outputs)
+            #     outputs = utils.scale(outputs)
+            #     outputs_square = outputs.reshape(21,21).copy()
+            #     Index, X, Y, Cat = shape.find_contour(a=outputs_square, thresh=0.5, pcd=pointcloud,shapex=10,shapey=10)
+            #     x_values = X.flatten().copy()
+            #     y_values = Y.flatten().copy()
+            #     cat_values = Cat.flatten().copy()
+            #     index_values = Index.flatten().copy()
+            #     index_x_y_cat = np.concatenate(
+            #     (index_values.reshape(-1, 1), x_values.reshape(-1, 1), y_values.reshape(-1, 1), cat_values.reshape(-1, 1)),
+            #         axis=1)
+            #     condition1=np.sum((index_x_y_cat[:,-1]==1)& (index_x_y_cat[:,1]==1))
+            #     condition2=np.sum((index_x_y_cat[:,-1]==1) & (index_x_y_cat[:,1]==0))
+            #     condition3=np.sum((index_x_y_cat[:,-1]==1) & (index_x_y_cat[:,2]==1))
+            #     condition4=np.sum((index_x_y_cat[:,-1]==1) & (index_x_y_cat[:,2]==0))
+            #     print(condition1,condition2,condition3,condition4)
+            #     if condition1*condition2*condition3*condition4==0:
+            #         is_true=0
+            #     else:
+            #         is_true=1
             solution2[gid] = child
             
         fitness_function(list(solution2.items()), config)
