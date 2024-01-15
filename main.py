@@ -90,9 +90,9 @@ def eval_genome(genome, config):
     outputs = []
     fitness=[]
     for point in pointcloud:
-        pointsym = np.sin(point*math.pi)
-        print(point, pointsym)
-        output = net.activate(point)
+        pointsym = np.cos(point*math.pi)
+        # print(point, pointsym)
+        output = net.activate(pointsym)
         outputs.append(output)
     outputs = np.array(outputs)
     outputs = utils.scale(outputs)
@@ -155,7 +155,7 @@ shapey = orig_size_xy[1]*density
 pointcloud = point_xy(shapex, shapey)
 Tri = shape.triangulation(shapex, shapey)
 if __name__ == '__main__':
-    random_seed = 22
+    random_seed = 33
     random.seed(random_seed)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'maze_config.ini')

@@ -14,8 +14,8 @@ def normalize(x, b=None, u=None):
             x /= np.max(x)
     x = np.nan_to_num(x)
     # adjust the range to [x1,x2]
-    # x *= 2
-    # x -= 1
+    x *= 2
+    x -= 1
     return x
 
 

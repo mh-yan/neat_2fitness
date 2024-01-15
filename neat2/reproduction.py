@@ -47,7 +47,7 @@ class DefaultReproduction(DefaultClassConfig):
             g = genome_type(key)
             g.configure_new(genome_config)
             i=0
-            while i<10:
+            while i<5:
                 i+=1
                 g.mutate(genome_config)
             print(g)
