@@ -55,7 +55,8 @@ class BaseGene(object):
     def mutate(self, config):
         for a in self._gene_attributes:
             v = getattr(self, a.name)
-            setattr(self, a.name, a.mutate_value(v, config))
+            m_v=a.mutate_value(v, config)
+            setattr(self, a.name, m_v)
 
     def copy(self):
         new_gene = self.__class__(self.key)
@@ -76,7 +77,6 @@ class BaseGene(object):
                 setattr(new_gene, a.name, getattr(self, a.name))
             else:
                 setattr(new_gene, a.name, getattr(gene2, a.name))
-
         return new_gene
 
 

@@ -88,7 +88,11 @@ def hat_activation(z):
 
 
 def square_activation(z):
-    return z ** 2
+    try:
+        return z ** 2
+    except Exception:
+        print("Error z is :",z)
+        raise Exception
 
 
 def cube_activation(z):

@@ -32,12 +32,12 @@ def point_xy(shapex, shapey):
 
 config = neat2.Config(
     neat2.DefaultGenome, neat2.DefaultReproduction,
-    'maze_config.ini')
+    'config.ini')
 
 
-orig_size_xy = (1, 1)
+orig_size_xy = (config.x, config.y)
 # 换密度plot
-density = 20
+density = config.density
 threshold = 0.5
 
 # 要求是square
@@ -48,10 +48,15 @@ Tri=shape.triangulation(shapex,shapey)
 
 # the root directory of neural network 
 path=f"./output_final"
-path2=f"./output/output_gen1"
+path2=f"./output/output_gen45"
 
 utils.plotall(config=config,path=path2,thresh=threshold,pcd=pointcloud,Tri=Tri,shapex=shapex,shapey=shapey)
 
+# for i in range(300):
+#     genome_path=f"{path2}/best_genome_{i}.pkl"
+#     with open(f'{genome_path}','rb') as f:
+#         genome=pickle.load(f)
+#         print(genome.fitness[0],i+1)
 
 
         

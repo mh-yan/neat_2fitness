@@ -37,7 +37,8 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('node_delete_prob', float),
                         ConfigParameter('single_structural_mutation', bool, 'false'),
                         ConfigParameter('structural_mutation_surer', str, 'default'),
-                        ConfigParameter('initial_connection', str, 'unconnected')]
+                        ConfigParameter('initial_connection', str, 'unconnected'),
+                        ConfigParameter('activation_mutate_rate', float),]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
@@ -173,7 +174,10 @@ class DefaultGenome(object):
         # Fitness results.
         # Todo change to the multifitness
         self.fitness = None
-
+        self.outputs=None
+        self.novelty=None
+        self.age=0
+        
     def configure_new(self, config):
         """Configure a new genome based on the given configuration."""
 
@@ -244,6 +248,10 @@ class DefaultGenome(object):
             else:
                 # Homologous gene: combine genes from both parents.
                 self.connections[key] = cg1.crossover(cg2)
+        # for key, cg2 in parent2.connections.items():
+        #     cg1 = parent1.connections.get(key)
+        #     if cg1 is None:
+        #         self.connections[key] = cg2.copy()
 
         # Inherit node genes
         parent1_set = parent1.nodes
@@ -258,6 +266,12 @@ class DefaultGenome(object):
             else:
                 # Homologous gene: combine genes from both parents.
                 self.nodes[key] = ng1.crossover(ng2)
+                
+        # for key, ng2 in parent2_set.items():
+        #     ng1 = parent1_set.get(key)
+        #     if ng1 is None:
+        #         self.nodes[key]=ng2.copy()
+            
 
     def mutate(self, config):
         """ Mutates this genome. """
@@ -296,6 +310,8 @@ class DefaultGenome(object):
         # Mutate node genes (bias, response, etc.).
         for ng in self.nodes.values():
             ng.mutate(config)
+
+
 
     def mutate_add_node(self, config):
         if not self.connections:
@@ -336,33 +352,40 @@ class DefaultGenome(object):
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input pins.
         """
-        possible_outputs = list(self.nodes)
-        out_node = choice(possible_outputs)
+        finished_mutate=False
+        max_times=5
+        cur_times=0
+        while not finished_mutate or cur_times<max_times:
+            cur_times+=1
+            possible_outputs = list(self.nodes)
+            out_node = choice(possible_outputs)
 
-        possible_inputs = possible_outputs + config.input_keys
-        in_node = choice(possible_inputs)
+            possible_inputs = possible_outputs + config.input_keys
+            in_node = choice(possible_inputs)
 
-        # Don't duplicate connections.
-        key = (in_node, out_node)
-        if key in self.connections:
-            # TODO: Should this be using mutation to/from rates? Hairy to configure...
-            if config.check_structural_mutation_surer():
-                self.connections[key].enabled = True
-            return
+            # Don't duplicate connections.
+            key = (in_node, out_node)
+            if key in self.connections:
+                # TODO: Should this be using mutation to/from rates? Hairy to configure...
+                if config.check_structural_mutation_surer():
+                    self.connections[key].enabled = True
+                    finished_mutate=True
+                return
+            break
+            # Don't allow connections between two output nodes
+            if in_node in config.output_keys and out_node in config.output_keys:
+                continue
 
-        # Don't allow connections between two output nodes
-        if in_node in config.output_keys and out_node in config.output_keys:
-            return
+            # No need to check for connections between input nodes:
+            # they cannot be the output end of a connection (see above).
 
-        # No need to check for connections between input nodes:
-        # they cannot be the output end of a connection (see above).
-
-        # For feed-forward networks, avoid creating cycles.
-        if config.feed_forward and creates_cycle(list(self.connections), key):
-            return
-
-        cg = self.create_connection(config, in_node, out_node)
-        self.connections[cg.key] = cg
+            # For feed-forward networks, avoid creating cycles.
+            if config.feed_forward and creates_cycle(list(self.connections), key):
+                continue
+            
+            cg = self.create_connection(config, in_node, out_node)
+            self.connections[cg.key] = cg
+            finished_mutate=True
 
     def mutate_delete_node(self, config):
         # Do nothing if there are no non-output nodes.

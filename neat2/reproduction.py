@@ -37,24 +37,21 @@ class DefaultReproduction(DefaultClassConfig):
         # pylint: disable=super-init-not-called
         self.reproduction_config = config
         self.reporters = reporters
+        # 1 is the id of node output
         self.genome_indexer = count(1)
+        
 
     def create_new(self, genome_type, genome_config, num_genomes):
-        new_genomes = {}
+        new_genomes = []
         for i in range(num_genomes):
             flag=1
             key = next(self.genome_indexer)
             g = genome_type(key)
             g.configure_new(genome_config)
-            i=0
-            while i<5:
-                i+=1
-                g.mutate(genome_config)
-            print(g)
-            new_genomes[key] = g
+            new_genomes.append(g)
         return new_genomes
-
-    def reproduce(self, config, solution, pop_size, generation, fitness_function,pointcloud):
+    
+    def reproduce(self, config, solution, pop_size, generation, fitness_function,pointcloud,ns_search):
         """
         Handles creation of genomes, either from scratch or by sexual or
         asexual reproduction from parents.
@@ -64,46 +61,27 @@ class DefaultReproduction(DefaultClassConfig):
         while (len(solution2) <2 * pop_size):
             is_true=0
             gid = next(self.genome_indexer)
-            parent1_id, parent1 = random.choice(list(solution.items()))
-            parent2_id, parent2 = random.choice(list(solution.items()))
+            parent1 = random.choice(solution)
+            parent2 = random.choice(solution)
+            # if len(solution2)<1.5 * pop_size:
             child = config.genome_type(gid)
             child.configure_crossover(parent1, parent2, config.genome_config)
             child.mutate(config.genome_config)
-            # while is_true!=1:
-            #     outputs=[]
+            # else:
+            #     child=copy.deepcopy(parent1)
+            #     child.key=gid
             #     child.mutate(config.genome_config)
-            #     net = nn.FeedForwardNetwork.create(child, config)
-            #     for point in pointcloud:
-            #          output = net.activate(point)
-            #          outputs.append(output)
-            #     outputs = np.array(outputs)
-            #     outputs = utils.scale(outputs)
-            #     outputs_square = outputs.reshape(21,21).copy()
-            #     Index, X, Y, Cat = shape.find_contour(a=outputs_square, thresh=0.5, pcd=pointcloud,shapex=10,shapey=10)
-            #     x_values = X.flatten().copy()
-            #     y_values = Y.flatten().copy()
-            #     cat_values = Cat.flatten().copy()
-            #     index_values = Index.flatten().copy()
-            #     index_x_y_cat = np.concatenate(
-            #     (index_values.reshape(-1, 1), x_values.reshape(-1, 1), y_values.reshape(-1, 1), cat_values.reshape(-1, 1)),
-            #         axis=1)
-            #     condition1=np.sum((index_x_y_cat[:,-1]==1)& (index_x_y_cat[:,1]==1))
-            #     condition2=np.sum((index_x_y_cat[:,-1]==1) & (index_x_y_cat[:,1]==0))
-            #     condition3=np.sum((index_x_y_cat[:,-1]==1) & (index_x_y_cat[:,2]==1))
-            #     condition4=np.sum((index_x_y_cat[:,-1]==1) & (index_x_y_cat[:,2]==0))
-            #     print(condition1,condition2,condition3,condition4)
-            #     if condition1*condition2*condition3*condition4==0:
-            #         is_true=0
-            #     else:
-            #         is_true=1
-            solution2[gid] = child
-            
-        fitness_function(list(solution2.items()), config)
+            solution2.append(child)
+
+        fitness_function(solution2, config)
+        #TODO novelty  calculation 
+        ns_search.eval_novelty(solution2)
         
-        function1_values2 = [g.fitness[0] for (k, g) in solution2.items()]
-        function2_values2 = [g.fitness[1] for (k, g) in solution2.items()]
         
-        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort_min(solution2)
+        function1_values2 = [g.fitness[1]/g.fitness[0] for g in solution2]
+        function2_values2 = [g.novelty for g in solution2]
+        
+        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort_max(function1_values2,function2_values2)
         crowding_distance_values2 = []
         for i in range(0, len(non_dominated_sorted_solution2)):
             crowding_distance_values2.append(
@@ -127,8 +105,9 @@ class DefaultReproduction(DefaultClassConfig):
             if (len(new_solution) == pop_size):
                 break
 
-        p_front1 = {list(solution2.items())[i][0]: list(solution2.items())[i][1] for i in
-                   non_dominated_sorted_solution2[0]}
-        solution = {list(solution2.items())[i][0]: list(solution2.items())[i][1] for i in new_solution}
+        p_front1 = [solution2[i] for i in non_dominated_sorted_solution2[0]]
+        solution = [solution2[i] for i in new_solution]
         
+        # print("front is :",[(i.fitness[0],i.novelty) for i in p_front1])
+        # print("solution is :",[(i.fitness[0],i.novelty) for i in solution])
         return solution, p_front1

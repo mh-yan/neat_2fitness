@@ -6,7 +6,7 @@ import  numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
 import tools.utils as utils
-
+import copy
 def triangulation(shapex,shapey):
     
     
@@ -68,8 +68,8 @@ def find_contour(a, thresh, pcd,shapex,shapey):
     flag_y = l * r
     k = 0
     a = a - thresh
-    min_r = 0.2
-    max_r = 0.8
+    min_r = 0.0
+    max_r = 1.0
     # ii,jj is the index of square
     for ii in range(shapey):
         for jj in range(shapex):
@@ -220,26 +220,16 @@ def load_net(path,config):
     with open(f'{path}','rb') as f:
         genome=pickle.load(f)
         net=neat2.nn.FeedForwardNetwork.create(genome,config)
-    return net
+    return genome,net
 
 def getshape(path,config,thresh,pcd,Tri,shapex,shapey,save_name=None):
-    net=load_net(path,config)
-    outputs = []
-    for point in pcd:
-        output = net.activate(point)
-        outputs.append(output)
-    outputs = np.array(outputs)
-    outputs=utils.scale(outputs)
+    genome,net=load_net(path,config)
+    outputs=copy.copy(genome.outputs)
     near = 1e-11
-
     outputs=outputs.reshape(2*shapey+1,2*shapex+1)
     Index, X, Y, Cat=find_contour(outputs,thresh,pcd,shapex,shapey)
-
     x_values = X.flatten()
     y_values = Y.flatten()
-    # scale
-    # x_values*=250
-    # y_values*=250
     cat_values = Cat.flatten()
     index_values = Index.flatten()
 

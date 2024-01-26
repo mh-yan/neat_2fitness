@@ -77,14 +77,13 @@ def fast_non_dominated_sort3(solution):
     return front
 
 #Function to carry out NSGA-II's fast non dominated sort
-def fast_non_dominated_sort_max(solution):
+def fast_non_dominated_sort_max(values1,values2):
     '''
     :param values1:  fitness1
     :param values2: fitness2
     :return: each pareto front  [[front 0] [front 1] [front 2] [front 3]]
     '''
-    values1 = [g.fitness[0] for (k, g) in solution.items()]
-    values2 = [g.fitness[1] for (k, g) in solution.items()]
+
 
     S=[[] for i in range(0,len(values1))]
     front = [[]]
@@ -120,9 +119,7 @@ def fast_non_dominated_sort_max(solution):
 
     del front[len(front)-1]
     return front
-def fast_non_dominated_sort_min(solution):
-    values1 = [g.fitness[0] for (k, g) in solution.items()]
-    values2 = [g.fitness[1] for (k, g) in solution.items()]
+def fast_non_dominated_sort_min(values1,values2):
 
     S = [[] for i in range(0, len(values1))]
     front = [[]]

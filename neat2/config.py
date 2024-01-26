@@ -125,7 +125,16 @@ class Config(object):
                 ConfigParameter('fitness_criterion', str),
                 ConfigParameter('fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool),
-                ConfigParameter('no_fitness_termination', bool, False)]
+                ConfigParameter('no_fitness_termination', bool, False),
+                ConfigParameter('generation', int),
+                ConfigParameter('x', int),
+                ConfigParameter('y', int),
+                ConfigParameter('density', int),
+                ConfigParameter('knn', int),
+                ConfigParameter('novelty_threshold', float),
+                ConfigParameter('archive_len', int),
+                ConfigParameter('degrade_rate', float),
+                ConfigParameter('upgrade_rate', float),]
 
     def __init__(self, genome_type, reproduction_type,  filename, config_information=None):
         # Check that the provided types have the required methods.
@@ -135,7 +144,7 @@ class Config(object):
 
         self.genome_type = genome_type
         self.reproduction_type = reproduction_type
-
+        self.novelty_archive={}
         self.config_information = config_information
 
         if not os.path.isfile(filename):
@@ -160,6 +169,7 @@ class Config(object):
                     setattr(self, p.name, p.default)
                     warnings.warn(f"Using default {p.default!r} for '{p.name!s}'",
                                   DeprecationWarning)
+                    
             param_list_names.append(p.name)
         param_dict = dict(parameters.items('NEAT'))
         unknown_list = [x for x in param_dict if x not in param_list_names]

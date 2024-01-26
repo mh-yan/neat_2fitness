@@ -14,7 +14,7 @@ import fitness_f.period as fit_period
 import fitness_f.fitness_function as ff
 from tools.read_mesh import getmesh
 import cv2
-
+import copy
 def square2parallel(input_xy):
     affine_matrix = np.array([[1.5, 0.5],   # 水平拉伸
                           [0, 1]])      # 垂直不变
@@ -72,7 +72,7 @@ def split2inside(output, pointcloud):
     trian_Y = Y.reshape(n_y, n_x).copy()
     a = output.reshape(n_y, n_x).copy()
     train_p_out = a
-    if_inside = train_p_out > threshold
+    if_inside = train_p_out < threshold
     inside_X = trian_X[if_inside]
     inside_Y = trian_Y[if_inside]
     inside = np.stack((inside_X.flatten(), inside_Y.flatten()), axis=1)
@@ -88,18 +88,14 @@ def split2inside(output, pointcloud):
 def eval_genome(genome, config):
     net = neat2.nn.FeedForwardNetwork.create(genome, config)
     outputs = []
-    fitness=[]
     for point in pointcloud:
         pointsym = np.cos(point*math.pi)
-        # print(point, pointsym)
         output = net.activate(pointsym)
         outputs.append(output)
     outputs = np.array(outputs)
     outputs = utils.scale(outputs)
-
     split = split2inside(outputs, pointcloud)
     outputs_square = split['all_square']
-
     Index, X, Y, Cat = shape.find_contour(a=outputs_square, thresh=threshold, pcd=pointcloud,shapex=shapex,shapey=shapey)
     x_values = X.flatten().copy()
     y_values = Y.flatten().copy()
@@ -109,35 +105,38 @@ def eval_genome(genome, config):
         (index_values.reshape(-1, 1), x_values.reshape(-1, 1), y_values.reshape(-1, 1), cat_values.reshape(-1, 1)),
         axis=1)
     outside_tri=shape.get_outside_Tri(Tri, index_x_y_cat)
-    mesh=getmesh(index_x_y_cat,outside_tri)
     # 求最大值？？
+    # f1,f2=ff.ring_test_score(split['inside'])
+    if len(outside_tri)==0 :
+        return -99999999,-99999999
+    mesh=getmesh(index_x_y_cat,outside_tri)
     f1,f2=fit_period.getfit(mesh)
-    return [f1,f2]
+    return [f1,f2],outputs.copy()
 
 
 
-def run_experiment(config_path, n_generations=100):
-    config = neat2.Config(neat2.DefaultGenome, neat2.DefaultReproduction,config_path)
+def run_experiment(config):
     p = neat2.Population(config,pcd=pointcloud)
     pe = neat2.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-    best_genomes = p.run(pe.evaluate, n=n_generations)
+    best_genomes = p.run(pe.evaluate, n=config.generation)
+    
     p1=[]
     p2=[]
     utils.check_and_create_directory("./output_final")
-    for i,(k,g) in enumerate(best_genomes.items()):
-        print(f"{k}: is{g.fitness}")
-        p1.append(g.fitness[0])
-        p2.append(g.fitness[1])
+    for i,g in enumerate(best_genomes):
+        print(f"{g.key}: is{g.fitness}")
+        p1.append(g.fitness[0]+g.fitness[1])
+        p2.append(g.novelty)
         with open(f'./output_final/best_genome_{i}.pkl', 'wb') as f:
             pickle.dump(g, f)
-    bg=list(best_genomes.items())[0][1]
+    bg=best_genomes[0]
     print('\nBest genome: \n%s' % (bg))
     # 画pareto front
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
     ax.scatter(p1, p2, color="green")
     ax.set_xlabel('f1', fontweight='bold')
-    ax.set_ylabel('f2', fontweight='bold')
+    ax.set_ylabel('novelty', fontweight='bold')
     ax.set_title(' Pareto front',fontweight='bold')  # 添加标题
     # 添加颜色条
     plt.show()
@@ -145,18 +144,24 @@ def run_experiment(config_path, n_generations=100):
     plt.close()
     
 
-orig_size_xy = (1, 1)
-density = 10
-n_generations =1
+
+
+# 配置全局config
+local_dir = os.path.dirname(__file__)
+config_path = os.path.join(local_dir, 'config.ini')
+config = neat2.Config(neat2.DefaultGenome, neat2.DefaultReproduction,config_path)
+
+# 全局参数后续不可变
+orig_size_xy = (config.x, config.y)
+density = config.density
 threshold = 0.5
-# 要求是square
 shapex = orig_size_xy[0]*density
 shapey = orig_size_xy[1]*density
+# 优化pointcloud的创建方式，应该放在每一个genome对象里面
 pointcloud = point_xy(shapex, shapey)
 Tri = shape.triangulation(shapex, shapey)
+
 if __name__ == '__main__':
-    random_seed = 33
+    random_seed = 5
     random.seed(random_seed)
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'maze_config.ini')
-    run_experiment(config_path, n_generations=n_generations)
+    run_experiment(config)

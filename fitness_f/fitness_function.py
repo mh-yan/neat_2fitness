@@ -5,16 +5,18 @@ def ring_test_score(inside_points):
     penalty=0
     n=0
     if inside_points.shape[0]==0:
-        penalty=-1000
+        penalty=-10000
     else:
         for point in inside_points:
-            if (point[0]) ** 2 + (point[1]) ** 2 -0.25>0 and (point[0]) ** 2 + (point[1]) ** 2 -0.5<0:
+            if (point[0]) ** 2 + (point[1]) ** 2 -0.25>=0 and (point[0]) ** 2 + (point[1]) ** 2 -0.5<=0:
                 n+=1
-            if (point[0]) ** 2 + (point[1]) ** 2 -0.25>0 and (point[0]) ** 2 + (point[1]) ** 2 -0.5<0 or (point[0]) ** 2 + (point[1]) ** 2 -0.25<=0:
+            if (point[0]) ** 2 + (point[1]) ** 2 -0.25>=0 and (point[0]) ** 2 + (point[1]) ** 2 -0.5<=0:
                 penalty+=(point[0]) ** 2 + (point[1]) ** 2 -0.25
-            else :
+            elif  (point[0]) ** 2 + (point[1]) ** 2 -0.5>0:
                 penalty-=(point[0]) ** 2 + (point[1]) ** 2 -0.5
-    return penalty,n
+            elif (point[0]) ** 2 + (point[1]) ** 2 -0.25<0:
+                penalty+=(point[0]) ** 2 + (point[1]) ** 2 -0.25
+    return penalty,0
 
 
 def circle_test_score(inside_points):
@@ -35,7 +37,7 @@ def ellipse_test_score(inside_points):
         penalty=-1000
     else:
         for point in inside_points:
-            penalty-=16*(point[0]) ** 2 + 25*(point[1]) ** 2 -0.25
+            penalty-=16*(point[0]) ** 2 + 4*(point[1]) ** 2 -1
     return penalty,n
 
 def element_stiffness(coords):

@@ -89,7 +89,7 @@ def getfit(mesh):
             solve(a == L, w, [], solver_parameters={"linear_solver": "cg"})
         except Exception as e:
             print("error")
-            return 999999999999,999999999999
+            return -999999999999,-999999999999
         (v, lamb) = split(w)
         Sigma = np.zeros((3,))
         for k in range(3):
@@ -104,7 +104,8 @@ def getfit(mesh):
     # plt.colorbar(p)
     # plt.show()
     # plt.savefig('deformed.png')
-        
-    return -(Chom[0,0]+Chom[1,1])/2.,Chom[0,1]
+    # print(-(Chom[0,0]+Chom[1,1])/2.,Chom[0,1])
+    return (Chom[0,0]+Chom[1,1])/2.,-Chom[0,1]
+    # return Chom[0,1]/Chom[0,0],Chom[0,0]
     #max avg 0011 min 01 10
     # print(np.array_str(Chom, precision=2))

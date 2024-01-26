@@ -194,7 +194,6 @@ class StringAttribute(BaseAttribute):
 
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
-
         if mutate_rate > 0:
             r = random()
             if r < mutate_rate:
