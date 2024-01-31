@@ -6,7 +6,7 @@ import copy
 import random
 from itertools import count
 import neat2.nn as nn
-import neat2.NSGA as NSGA
+import neat2.nsga as nsga
 from neat2.config import ConfigParameter, DefaultClassConfig
 import numpy as np
 from tools  import utils as utils
@@ -78,23 +78,23 @@ class DefaultReproduction(DefaultClassConfig):
         ns_search.eval_novelty(solution2)
         
         
-        function1_values2 = [g.fitness[1]/g.fitness[0] for g in solution2]
+        function1_values2 = [0 for g in solution2]
         function2_values2 = [g.novelty for g in solution2]
         
-        non_dominated_sorted_solution2 = NSGA.fast_non_dominated_sort_max(function1_values2,function2_values2)
+        non_dominated_sorted_solution2 = nsga.fast_non_dominated_sort_max(function1_values2,function2_values2)
         crowding_distance_values2 = []
         for i in range(0, len(non_dominated_sorted_solution2)):
             crowding_distance_values2.append(
 
-                NSGA.crowding_distance(function1_values2[:], function2_values2[:],
+                nsga.crowding_distance(function1_values2[:], function2_values2[:],
                                        non_dominated_sorted_solution2[i][:]))
 
         new_solution = []
         for i in range(0, len(non_dominated_sorted_solution2)):
             non_dominated_sorted_solution2_1 = [
-                NSGA.index_of(non_dominated_sorted_solution2[i][j], non_dominated_sorted_solution2[i]) for j in
+                nsga.index_of(non_dominated_sorted_solution2[i][j], non_dominated_sorted_solution2[i]) for j in
                 range(0, len(non_dominated_sorted_solution2[i]))]
-            front22 = NSGA.sort_by_values(non_dominated_sorted_solution2_1[:], crowding_distance_values2[i][:])
+            front22 = nsga.sort_by_values(non_dominated_sorted_solution2_1[:], crowding_distance_values2[i][:])
             front = [non_dominated_sorted_solution2[i][front22[j]] for j in
                      range(0, len(non_dominated_sorted_solution2[i]))]
             front.reverse()
@@ -108,6 +108,4 @@ class DefaultReproduction(DefaultClassConfig):
         p_front1 = [solution2[i] for i in non_dominated_sorted_solution2[0]]
         solution = [solution2[i] for i in new_solution]
         
-        # print("front is :",[(i.fitness[0],i.novelty) for i in p_front1])
-        # print("solution is :",[(i.fitness[0],i.novelty) for i in solution])
         return solution, p_front1

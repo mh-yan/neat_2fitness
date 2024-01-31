@@ -108,7 +108,7 @@ def eval_genome(genome, config):
     # 求最大值？？
     # f1,f2=ff.ring_test_score(split['inside'])
     if len(outside_tri)==0 :
-        return -99999999,-99999999
+        return -99999999,-99999999,outputs.copy()
     mesh=getmesh(index_x_y_cat,outside_tri)
     f1,f2=fit_period.getfit(mesh)
     return [f1,f2],outputs.copy()

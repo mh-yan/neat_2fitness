@@ -38,7 +38,7 @@ class novelty_search(object):
         p2=[[f1,f2]...] from pop_off_novelty        
         return dismatirx
         """
-        print(pop_off)
+        # print(pop_off)
         p1=[ [g.fitness[0],g.fitness[1]] for g in pop_off]
         p2=[ [g.fitness[0],g.fitness[1]] for g in pop_off_novelty]
         dismatrix=cdist(p1,p2,'euclidean')

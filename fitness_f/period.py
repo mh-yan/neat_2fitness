@@ -4,7 +4,7 @@ from dolfin import *
 import numpy as np
 import matplotlib.pyplot as plt
 # from mshr import *
-
+set_log_level(40)
 class PeriodicBoundary(SubDomain):
     def __init__(self, vertices, tolerance=DOLFIN_EPS):
         """ vertices stores the coordinates of the 4 unit cell corners"""
